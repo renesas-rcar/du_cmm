@@ -13,7 +13,7 @@ struct rcar_du_cmm_table {
 	unsigned int	crtc_id;
 	unsigned int	buff;	/* set DRM_RCAR_DU_CMM_ALLOC handle */
 	unsigned int	buff_len;
-	unsigned long	user_data;
+	uint64_t	user_data;
 };
 
 /* DRM_RCAR_DU_CMM_SET_HGO: DU-CMM set HGO */
@@ -31,15 +31,16 @@ struct rcar_du_cmm_hgo_config {
 struct rcar_du_cmm_event {
 	unsigned int	crtc_id;
 	unsigned int	event;
-	unsigned long	callback_data;
+	uint64_t	callback_data;
 };
 
 /* DRM_RCAR_DU_CMM_CONFIG: DU-CMM set config */
 struct rcar_du_cmm_config {
 	unsigned int	crtc_id;
-	int		csc;
-	int		lut_buf;
-	int		clu_buf;
+	unsigned int	csc;
+	unsigned int	lut_buf;
+	unsigned int	clu_buf;
+	bool		authority;
 };
 
 /* DRM_RCAR_DU_CMM_ALLOC: DU-CMM alloc cma buffer */
@@ -48,7 +49,7 @@ struct rcar_du_cmm_buf {
 	size_t		size;		/* in */
 	uint64_t	mmap_offset;	/* out */
 	uint64_t	phy_addr;	/* out */
-	uint32_t	handle;		/* out */
+	unsigned int	handle;		/* out */
 };
 
 /* DRM_RCAR_DU_CMM_WAIT_EVENT: DU-CMM done event */
@@ -81,12 +82,10 @@ struct rcar_du_cmm_buf {
 #define LUT_DOUBLE_BUFFER_AUTO		0
 #define LUT_DOUBLE_BUFFER_A		1
 #define LUT_DOUBLE_BUFFER_B		2
-#define LUT_SINGLE_BUFFER		3
 
 #define CLU_DOUBLE_BUFFER_AUTO		0
 #define CLU_DOUBLE_BUFFER_A		1
 #define CLU_DOUBLE_BUFFER_B		2
-#define CLU_SINGLE_BUFFER		3
 
 /* rcar-du + vspd specific ioctls */
 /* DU-CMM ioctl */
