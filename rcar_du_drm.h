@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2016-2017 Renesas Electronics Corporation
+ * Copyright (c) 2016-2018 Renesas Electronics Corporation
  * Released under the MIT license
  * http://opensource.org/licenses/mit-license.php
  */
@@ -7,6 +7,7 @@
 #ifndef __RCAR_DU_DRM_H__
 #define __RCAR_DU_DRM_H__
 
+/* DRM_RCAR_DU_CMM_SET_LUT, DU-CMM set LUT */
 /* DRM_RCAR_DU_CMM_SET_CLU: DU-CMM set CLU */
 /* DRM_RCAR_DU_CMM_GET_HGO: DU-CMM get histogram */
 struct rcar_du_cmm_table {

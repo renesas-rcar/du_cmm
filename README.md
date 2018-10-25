@@ -9,7 +9,7 @@ How to build
 Store linux-renesas_4.14.bbappend to the following path.
 	/meta-rcar-gen3/recipes-kernel
 Store patches to the following path.
-	/meta-rcar-gen3/recipes-kernel/linux/linux-renesas/salvator-x
+	/meta-rcar-gen3/recipes-kernel/linux/linux-renesas/
 
 2. building with bitbake
 
