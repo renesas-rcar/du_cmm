@@ -1,15 +1,16 @@
-From d4a8cbbabd6248509fb01f5de3c51d8a9e68a371 Mon Sep 17 00:00:00 2001
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Date: Wed, 28 Nov 2018 13:54:24 +0900
+From bda324cb068c7d8620d0bc67a5ac0642785cc592 Mon Sep 17 00:00:00 2001
+From: Sojiro Kusunoki <sojiro.kusunoki.zj@ps.hitachi-solutions.com>
+Date: Fri, 15 Mar 2019 11:26:26 +0900
 Subject: [PATCH] drm: rcar-du: Add DU CMM support
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Sojiro Kusunoki <sojiro.kusunoki.zj@ps.hitachi-solutions.com>
 ---
  .../boot/dts/renesas/r8a7795-es1-salvator-x.dts    |    5 +
  arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts |    5 +
  .../arm64/boot/dts/renesas/r8a7795-salvator-xs.dts |    5 +
  arch/arm64/boot/dts/renesas/r8a7795.dtsi           |   25 +-
  arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts |    4 +
+ .../boot/dts/renesas/r8a7796-salvator-xs-2x4g.dts  |    4 +
  .../arm64/boot/dts/renesas/r8a7796-salvator-xs.dts |    4 +
  arch/arm64/boot/dts/renesas/r8a7796.dtsi           |   22 +-
  .../arm64/boot/dts/renesas/r8a77965-salvator-x.dts |    4 +
@@ -26,13 +27,13 @@ Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
  drivers/gpu/drm/rcar-du/rcar_du_cmm.c              | 1757 ++++++++++++++++++++
  drivers/gpu/drm/rcar-du/rcar_du_crtc.c             |   26 +
  drivers/gpu/drm/rcar-du/rcar_du_crtc.h             |   31 +
- drivers/gpu/drm/rcar-du/rcar_du_drv.c              |   54 +-
+ drivers/gpu/drm/rcar-du/rcar_du_drv.c              |   53 +-
  drivers/gpu/drm/rcar-du/rcar_du_drv.h              |    7 +
  drivers/gpu/drm/rcar-du/rcar_du_group.c            |    5 +
  drivers/gpu/drm/rcar-du/rcar_du_regs.h             |   90 +
  drivers/gpu/drm/rcar-du/rcar_lvds.c                |   13 +
  include/uapi/drm/rcar_du_drm.h                     |  131 +-
- 27 files changed, 2228 insertions(+), 29 deletions(-)
+ 28 files changed, 2231 insertions(+), 29 deletions(-)
  create mode 100644 drivers/gpu/drm/rcar-du/rcar_du_cmm.c
 
 diff --git a/arch/arm64/boot/dts/renesas/r8a7795-es1-salvator-x.dts b/arch/arm64/boot/dts/renesas/r8a7795-es1-salvator-x.dts
@@ -99,10 +100,10 @@ index 498f788..b96ccf4 100644
  };
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a7795.dtsi b/arch/arm64/boot/dts/renesas/r8a7795.dtsi
-index 1896e52..3dc4d90 100644
+index c1cafbb..805840f 100644
 --- a/arch/arm64/boot/dts/renesas/r8a7795.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a7795.dtsi
-@@ -3480,7 +3480,12 @@
+@@ -3442,7 +3442,12 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a7795";
@@ -116,7 +117,7 @@ index 1896e52..3dc4d90 100644
  			interrupts = <GIC_SPI 256 IRQ_TYPE_LEVEL_HIGH>,
  				     <GIC_SPI 268 IRQ_TYPE_LEVEL_HIGH>,
  				     <GIC_SPI 269 IRQ_TYPE_LEVEL_HIGH>,
-@@ -3488,13 +3493,23 @@
+@@ -3450,13 +3455,23 @@
  			clocks = <&cpg CPG_MOD 724>,
  				 <&cpg CPG_MOD 723>,
  				 <&cpg CPG_MOD 722>,
@@ -145,7 +146,7 @@ index 1896e52..3dc4d90 100644
  			status = "disabled";
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts b/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts
-index 02a938b..7e03f45 100644
+index cf92aa3..8530489 100644
 --- a/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts
 +++ b/arch/arm64/boot/dts/renesas/r8a7796-salvator-x.dts
 @@ -81,10 +81,14 @@
@@ -163,8 +164,27 @@ index 02a938b..7e03f45 100644
  		      "dclkin.0", "dclkin.1", "dclkin.2";
  };
  
+diff --git a/arch/arm64/boot/dts/renesas/r8a7796-salvator-xs-2x4g.dts b/arch/arm64/boot/dts/renesas/r8a7796-salvator-xs-2x4g.dts
+index 664dc92..1cd7873 100644
+--- a/arch/arm64/boot/dts/renesas/r8a7796-salvator-xs-2x4g.dts
++++ b/arch/arm64/boot/dts/renesas/r8a7796-salvator-xs-2x4g.dts
+@@ -89,10 +89,14 @@
+ 	clocks = <&cpg CPG_MOD 724>,
+ 		 <&cpg CPG_MOD 723>,
+ 		 <&cpg CPG_MOD 722>,
++		 <&cpg CPG_MOD 711>,
++		 <&cpg CPG_MOD 710>,
++		 <&cpg CPG_MOD 709>,
+ 		 <&versaclock6 1>,
+ 		 <&x21_clk>,
+ 		 <&versaclock6 2>;
+ 	clock-names = "du.0", "du.1", "du.2",
++		      "cmm.0", "cmm.1", "cmm.2",
+ 		      "dclkin.0", "dclkin.1", "dclkin.2";
+ };
+ 
 diff --git a/arch/arm64/boot/dts/renesas/r8a7796-salvator-xs.dts b/arch/arm64/boot/dts/renesas/r8a7796-salvator-xs.dts
-index bd66be1..8d49598 100644
+index 7d39dc9..f098f6e 100644
 --- a/arch/arm64/boot/dts/renesas/r8a7796-salvator-xs.dts
 +++ b/arch/arm64/boot/dts/renesas/r8a7796-salvator-xs.dts
 @@ -81,10 +81,14 @@
@@ -183,10 +203,10 @@ index bd66be1..8d49598 100644
  };
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a7796.dtsi b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
-index c00d1da..e06b8f4 100644
+index 49d9357..74ab652 100644
 --- a/arch/arm64/boot/dts/renesas/r8a7796.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
-@@ -3169,18 +3169,30 @@
+@@ -3122,18 +3122,30 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a7796";
@@ -261,10 +281,10 @@ index d645612..1d0fd40 100644
  };
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a77965.dtsi b/arch/arm64/boot/dts/renesas/r8a77965.dtsi
-index 454a67b..44bcfa6 100644
+index c24f919..7241da6 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77965.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a77965.dtsi
-@@ -2398,18 +2398,30 @@
+@@ -2360,18 +2360,30 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a77965";
@@ -335,10 +355,10 @@ index 087d553..50daaf5 100644
  
  &ehci0 {
 diff --git a/arch/arm64/boot/dts/renesas/r8a77990.dtsi b/arch/arm64/boot/dts/renesas/r8a77990.dtsi
-index bd4d71e2..8e001a7 100644
+index e5e3386..ac2175c 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77990.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a77990.dtsi
-@@ -1861,15 +1861,22 @@
+@@ -1829,15 +1829,22 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a77990";
@@ -367,7 +387,7 @@ index bd4d71e2..8e001a7 100644
  			status = "disabled";
  
 diff --git a/drivers/clk/renesas/r8a7795-cpg-mssr.c b/drivers/clk/renesas/r8a7795-cpg-mssr.c
-index 54c4704..7107054 100644
+index 5b09453..869030c 100644
 --- a/drivers/clk/renesas/r8a7795-cpg-mssr.c
 +++ b/drivers/clk/renesas/r8a7795-cpg-mssr.c
 @@ -207,6 +207,10 @@ enum clk_ids {
@@ -382,10 +402,10 @@ index 54c4704..7107054 100644
  	DEF_MOD("csi20",		 714,	R8A7795_CLK_CSI0),
  	DEF_MOD("csi41",		 715,	R8A7795_CLK_CSI0),
 diff --git a/drivers/clk/renesas/r8a7796-cpg-mssr.c b/drivers/clk/renesas/r8a7796-cpg-mssr.c
-index e0acdef..52c991b 100644
+index ad1e3f8..d70f2f2 100644
 --- a/drivers/clk/renesas/r8a7796-cpg-mssr.c
 +++ b/drivers/clk/renesas/r8a7796-cpg-mssr.c
-@@ -186,6 +186,9 @@ enum clk_ids {
+@@ -187,6 +187,9 @@ enum clk_ids {
  	DEF_MOD("ehci1",		 702,	R8A7796_CLK_S3D2),
  	DEF_MOD("ehci0",		 703,	R8A7796_CLK_S3D2),
  	DEF_MOD("hsusb",		 704,	R8A7796_CLK_S3D2),
@@ -396,10 +416,10 @@ index e0acdef..52c991b 100644
  	DEF_MOD("csi40",		 716,	R8A7796_CLK_CSI0),
  	DEF_MOD("du2",			 722,	R8A7796_CLK_S2D1),
 diff --git a/drivers/clk/renesas/r8a77965-cpg-mssr.c b/drivers/clk/renesas/r8a77965-cpg-mssr.c
-index 5831261..e372a1a 100644
+index b3b637f..5238069 100644
 --- a/drivers/clk/renesas/r8a77965-cpg-mssr.c
 +++ b/drivers/clk/renesas/r8a77965-cpg-mssr.c
-@@ -181,6 +181,9 @@ enum clk_ids {
+@@ -182,6 +182,9 @@ enum clk_ids {
  	DEF_MOD("ehci1",		702,	R8A77965_CLK_S3D2),
  	DEF_MOD("ehci0",		703,	R8A77965_CLK_S3D2),
  	DEF_MOD("hsusb",		704,	R8A77965_CLK_S3D2),
@@ -410,7 +430,7 @@ index 5831261..e372a1a 100644
  	DEF_MOD("csi40",		716,	R8A77965_CLK_CSI0),
  	DEF_MOD("du3",			721,	R8A77965_CLK_S2D1),
 diff --git a/drivers/clk/renesas/r8a77990-cpg-mssr.c b/drivers/clk/renesas/r8a77990-cpg-mssr.c
-index 3d5e23a..4831ddd 100644
+index a5d0d00..4129d57 100644
 --- a/drivers/clk/renesas/r8a77990-cpg-mssr.c
 +++ b/drivers/clk/renesas/r8a77990-cpg-mssr.c
 @@ -186,6 +186,8 @@ enum clk_ids {
@@ -2310,7 +2330,7 @@ index 7680cb2..b78c621 100644
 +
  #endif /* __RCAR_DU_CRTC_H__ */
 diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.c b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
-index e56ab29..ee7479f 100644
+index e56ab29..40f104f 100644
 --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
 +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
 @@ -203,7 +203,10 @@
@@ -2397,20 +2417,19 @@ index e56ab29..ee7479f 100644
  	.lastclose		= rcar_du_lastclose,
  	.gem_free_object_unlocked = drm_gem_cma_free_object,
  	.gem_vm_ops		= &drm_gem_cma_vm_ops,
-@@ -419,6 +453,12 @@ static int rcar_du_pm_shutdown(struct device *dev)
- #if IS_ENABLED(CONFIG_DRM_RCAR_DW_HDMI)
- 	struct drm_encoder *encoder;
- #endif
-+	int i;
-+
+@@ -451,6 +485,11 @@ static int rcar_du_pm_suspend(struct device *dev)
+ 	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
+ 	int i, ret;
+ 
 +	if (rcar_du_has(rcdu, RCAR_DU_FEATURE_CMM)) {
 +		for (i = 0; i < rcdu->num_crtcs; ++i)
 +			rcar_du_cmm_pm_suspend(&rcdu->crtcs[i]);
 +	}
- 
- 	drm_kms_helper_poll_disable(rcdu->ddev);
- 	drm_fbdev_cma_set_suspend_unlocked(rcdu->fbdev, true);
-@@ -464,6 +504,7 @@ static int rcar_du_pm_suspend(struct device *dev)
++
+ 	ret = rcar_du_pm_shutdown(dev);
+ 	if (ret)
+ 		return ret;
+@@ -464,6 +503,7 @@ static int rcar_du_pm_suspend(struct device *dev)
  static int rcar_du_pm_resume(struct device *dev)
  {
  	struct rcar_du_device *rcdu = dev_get_drvdata(dev);
@@ -2418,7 +2437,7 @@ index e56ab29..ee7479f 100644
  #if IS_ENABLED(CONFIG_DRM_RCAR_DW_HDMI)
  	struct drm_encoder *encoder;
  
-@@ -477,6 +518,11 @@ static int rcar_du_pm_resume(struct device *dev)
+@@ -477,6 +517,11 @@ static int rcar_du_pm_resume(struct device *dev)
  			dw_hdmi_s2r_ctrl(encoder->bridge, true);
  	}
  #endif
