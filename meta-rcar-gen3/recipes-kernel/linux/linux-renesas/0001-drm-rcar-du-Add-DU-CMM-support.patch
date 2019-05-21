@@ -1,6 +1,6 @@
-From bda324cb068c7d8620d0bc67a5ac0642785cc592 Mon Sep 17 00:00:00 2001
+From 89a6e56072d2970741413e6c118f7062a72a0979 Mon Sep 17 00:00:00 2001
 From: Sojiro Kusunoki <sojiro.kusunoki.zj@ps.hitachi-solutions.com>
-Date: Fri, 15 Mar 2019 11:26:26 +0900
+Date: Tue, 21 May 2019 09:23:49 +0900
 Subject: [PATCH] drm: rcar-du: Add DU CMM support
 
 Signed-off-by: Sojiro Kusunoki <sojiro.kusunoki.zj@ps.hitachi-solutions.com>
@@ -100,10 +100,10 @@ index 498f788..b96ccf4 100644
  };
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a7795.dtsi b/arch/arm64/boot/dts/renesas/r8a7795.dtsi
-index c1cafbb..805840f 100644
+index 2cf1ae6..1be004f 100644
 --- a/arch/arm64/boot/dts/renesas/r8a7795.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a7795.dtsi
-@@ -3442,7 +3442,12 @@
+@@ -3438,7 +3438,12 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a7795";
@@ -117,7 +117,7 @@ index c1cafbb..805840f 100644
  			interrupts = <GIC_SPI 256 IRQ_TYPE_LEVEL_HIGH>,
  				     <GIC_SPI 268 IRQ_TYPE_LEVEL_HIGH>,
  				     <GIC_SPI 269 IRQ_TYPE_LEVEL_HIGH>,
-@@ -3450,13 +3455,23 @@
+@@ -3446,13 +3451,23 @@
  			clocks = <&cpg CPG_MOD 724>,
  				 <&cpg CPG_MOD 723>,
  				 <&cpg CPG_MOD 722>,
@@ -203,10 +203,10 @@ index 7d39dc9..f098f6e 100644
  };
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a7796.dtsi b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
-index 49d9357..74ab652 100644
+index 4de0920..d214860 100644
 --- a/arch/arm64/boot/dts/renesas/r8a7796.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
-@@ -3122,18 +3122,30 @@
+@@ -3118,18 +3118,30 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a7796";
@@ -281,10 +281,10 @@ index d645612..1d0fd40 100644
  };
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a77965.dtsi b/arch/arm64/boot/dts/renesas/r8a77965.dtsi
-index c24f919..7241da6 100644
+index 74f3369..0ae843a 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77965.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a77965.dtsi
-@@ -2360,18 +2360,30 @@
+@@ -2356,18 +2356,30 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a77965";
@@ -321,7 +321,7 @@ index c24f919..7241da6 100644
  
  			vsps = <&vspd0 0 &vspd1 0 &vspd0 1>;
 diff --git a/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts b/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts
-index 26081a6..f78736f 100644
+index f52f0f2..5ff707e 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts
 +++ b/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts
 @@ -390,8 +390,10 @@
@@ -338,7 +338,7 @@ index 26081a6..f78736f 100644
  
  &ehci0 {
 diff --git a/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts b/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts
-index 087d553..50daaf5 100644
+index f860fcb..5012789 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts
 +++ b/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts
 @@ -390,8 +390,10 @@
@@ -355,10 +355,10 @@ index 087d553..50daaf5 100644
  
  &ehci0 {
 diff --git a/arch/arm64/boot/dts/renesas/r8a77990.dtsi b/arch/arm64/boot/dts/renesas/r8a77990.dtsi
-index e5e3386..ac2175c 100644
+index 7cfa102..73e30c5 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77990.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a77990.dtsi
-@@ -1829,15 +1829,22 @@
+@@ -1826,15 +1826,22 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a77990";
