@@ -1,9 +1,9 @@
-From 89a6e56072d2970741413e6c118f7062a72a0979 Mon Sep 17 00:00:00 2001
+From 51bf712e646cb8fd53e1a172795d77bce193dfee Mon Sep 17 00:00:00 2001
 From: Sojiro Kusunoki <sojiro.kusunoki.zj@ps.hitachi-solutions.com>
 Date: Tue, 21 May 2019 09:23:49 +0900
 Subject: [PATCH] drm: rcar-du: Add DU CMM support
 
-Signed-off-by: Sojiro Kusunoki <sojiro.kusunoki.zj@ps.hitachi-solutions.com>
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 ---
  .../boot/dts/renesas/r8a7795-es1-salvator-x.dts    |    5 +
  arch/arm64/boot/dts/renesas/r8a7795-salvator-x.dts |    5 +
@@ -24,7 +24,7 @@ Signed-off-by: Sojiro Kusunoki <sojiro.kusunoki.zj@ps.hitachi-solutions.com>
  drivers/clk/renesas/r8a77965-cpg-mssr.c            |    3 +
  drivers/clk/renesas/r8a77990-cpg-mssr.c            |    2 +
  drivers/gpu/drm/rcar-du/Makefile                   |    2 +
- drivers/gpu/drm/rcar-du/rcar_du_cmm.c              | 1757 ++++++++++++++++++++
+ drivers/gpu/drm/rcar-du/rcar_du_cmm.c              | 1760 ++++++++++++++++++++
  drivers/gpu/drm/rcar-du/rcar_du_crtc.c             |   26 +
  drivers/gpu/drm/rcar-du/rcar_du_crtc.h             |   31 +
  drivers/gpu/drm/rcar-du/rcar_du_drv.c              |   53 +-
@@ -33,11 +33,11 @@ Signed-off-by: Sojiro Kusunoki <sojiro.kusunoki.zj@ps.hitachi-solutions.com>
  drivers/gpu/drm/rcar-du/rcar_du_regs.h             |   90 +
  drivers/gpu/drm/rcar-du/rcar_lvds.c                |   13 +
  include/uapi/drm/rcar_du_drm.h                     |  131 +-
- 28 files changed, 2231 insertions(+), 29 deletions(-)
+ 28 files changed, 2234 insertions(+), 29 deletions(-)
  create mode 100644 drivers/gpu/drm/rcar-du/rcar_du_cmm.c
 
 diff --git a/arch/arm64/boot/dts/renesas/r8a7795-es1-salvator-x.dts b/arch/arm64/boot/dts/renesas/r8a7795-es1-salvator-x.dts
-index 5c3935e..c6eb0c9 100644
+index 5c3935ef..c6eb0c9 100644
 --- a/arch/arm64/boot/dts/renesas/r8a7795-es1-salvator-x.dts
 +++ b/arch/arm64/boot/dts/renesas/r8a7795-es1-salvator-x.dts
 @@ -92,11 +92,16 @@
@@ -390,7 +390,7 @@ diff --git a/drivers/clk/renesas/r8a7795-cpg-mssr.c b/drivers/clk/renesas/r8a779
 index 5b09453..869030c 100644
 --- a/drivers/clk/renesas/r8a7795-cpg-mssr.c
 +++ b/drivers/clk/renesas/r8a7795-cpg-mssr.c
-@@ -207,6 +207,10 @@ enum clk_ids {
+@@ -207,6 +207,10 @@ static struct mssr_mod_clk r8a7795_mod_clks[] __initdata = {
  	DEF_MOD("ehci0",		 703,	R8A7795_CLK_S3D2),
  	DEF_MOD("hsusb",		 704,	R8A7795_CLK_S3D2),
  	DEF_MOD("hsusb3",		 705,	R8A7795_CLK_S3D2),
@@ -405,7 +405,7 @@ diff --git a/drivers/clk/renesas/r8a7796-cpg-mssr.c b/drivers/clk/renesas/r8a779
 index ad1e3f8..d70f2f2 100644
 --- a/drivers/clk/renesas/r8a7796-cpg-mssr.c
 +++ b/drivers/clk/renesas/r8a7796-cpg-mssr.c
-@@ -187,6 +187,9 @@ enum clk_ids {
+@@ -187,6 +187,9 @@ static struct mssr_mod_clk r8a7796_mod_clks[] __initdata = {
  	DEF_MOD("ehci1",		 702,	R8A7796_CLK_S3D2),
  	DEF_MOD("ehci0",		 703,	R8A7796_CLK_S3D2),
  	DEF_MOD("hsusb",		 704,	R8A7796_CLK_S3D2),
@@ -419,7 +419,7 @@ diff --git a/drivers/clk/renesas/r8a77965-cpg-mssr.c b/drivers/clk/renesas/r8a77
 index b3b637f..5238069 100644
 --- a/drivers/clk/renesas/r8a77965-cpg-mssr.c
 +++ b/drivers/clk/renesas/r8a77965-cpg-mssr.c
-@@ -182,6 +182,9 @@ enum clk_ids {
+@@ -182,6 +182,9 @@ static const struct mssr_mod_clk r8a77965_mod_clks[] __initconst = {
  	DEF_MOD("ehci1",		702,	R8A77965_CLK_S3D2),
  	DEF_MOD("ehci0",		703,	R8A77965_CLK_S3D2),
  	DEF_MOD("hsusb",		704,	R8A77965_CLK_S3D2),
@@ -433,7 +433,7 @@ diff --git a/drivers/clk/renesas/r8a77990-cpg-mssr.c b/drivers/clk/renesas/r8a77
 index a5d0d00..4129d57 100644
 --- a/drivers/clk/renesas/r8a77990-cpg-mssr.c
 +++ b/drivers/clk/renesas/r8a77990-cpg-mssr.c
-@@ -186,6 +186,8 @@ enum clk_ids {
+@@ -186,6 +186,8 @@ static const struct mssr_mod_clk r8a77990_mod_clks[] __initconst = {
  
  	DEF_MOD("ehci0",		 703,	R8A77990_CLK_S3D2),
  	DEF_MOD("hsusb",		 704,	R8A77990_CLK_S3D2),
@@ -457,10 +457,10 @@ index 9bd2fe3..bcc3789 100644
  obj-$(CONFIG_DRM_RCAR_DU)		+= rcar-du-drm.o
 diff --git a/drivers/gpu/drm/rcar-du/rcar_du_cmm.c b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
 new file mode 100644
-index 0000000..49a929e
+index 0000000..ecb8cee
 --- /dev/null
 +++ b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
-@@ -0,0 +1,1757 @@
+@@ -0,0 +1,1760 @@
 +/*************************************************************************/ /*
 + * DU CMM
 + *
@@ -1276,6 +1276,32 @@ index 0000000..49a929e
 +		clk_disable_unprepare(du_cmm->clock);
 +}
 +
++#ifdef CONFIG_PM_SLEEP
++static void rcar_du_cmm_register_save(struct rcar_du_cmm *du_cmm)
++{
++	int i, j, k, index;
++
++	/* table save */
++	for (i = 0; i < CMM_LUT_NUM; i++) {
++		du_cmm->reg_save.lut_table[i] =
++			rcar_du_cmm_read(du_cmm, CM2_LUT_TBL_A(i));
++	}
++
++	index = 0;
++	for (i = 0; i < CMM_CLU_SAMPLES; i++) {
++		for (j = 0; j < CMM_CLU_SAMPLES; j++) {
++			for (k = 0; k < CMM_CLU_SAMPLES; k++) {
++				rcar_du_cmm_write(du_cmm, CM2_CLU_ADDR,
++						  (k << 16) | (j << 8) |
++						  (i << 0));
++				du_cmm->reg_save.clu_table[index++] =
++					rcar_du_cmm_read(du_cmm, CM2_CLU_DATA);
++			}
++		}
++	}
++}
++#endif
++
 +int rcar_du_cmm_start_stop(struct rcar_du_crtc *rcrtc, bool on)
 +{
 +	struct rcar_du_cmm *du_cmm = rcrtc->cmm_handle;
@@ -1292,6 +1318,9 @@ index 0000000..49a929e
 +	if (!on) {
 +		du_cmm->active = false;
 +
++#ifdef CONFIG_PM_SLEEP
++		rcar_du_cmm_register_save(du_cmm);
++#endif
 +		rcar_du_cmm_write(du_cmm, CM2_LUT_CTRL, 0x00000000);
 +		rcar_du_cmm_write(du_cmm, CM2_CLU_CTRL, 0x00000000);
 +
@@ -1913,7 +1942,6 @@ index 0000000..49a929e
 +{
 +	struct rcar_du_cmm *du_cmm = rcrtc->cmm_handle;
 +	struct rcar_du_device *rcdu = rcrtc->group->dev;
-+	int i, j, k, index;
 +	int ret;
 +
 +	if (!du_cmm)
@@ -1929,31 +1957,6 @@ index 0000000..49a929e
 +		return 0;
 +
 +	du_cmm->init = false;
-+
-+	if (!du_cmm->active)
-+		du_cmm_clk(du_cmm, true);
-+
-+	/* table save */
-+	for (i = 0; i < CMM_LUT_NUM; i++) {
-+		du_cmm->reg_save.lut_table[i] =
-+			rcar_du_cmm_read(du_cmm, CM2_LUT_TBL_A(i));
-+	}
-+
-+	index = 0;
-+	for (i = 0; i < CMM_CLU_SAMPLES; i++) {
-+		for (j = 0; j < CMM_CLU_SAMPLES; j++) {
-+			for (k = 0; k < CMM_CLU_SAMPLES; k++) {
-+				rcar_du_cmm_write(du_cmm, CM2_CLU_ADDR,
-+						  (k << 16) | (j << 8) |
-+						  (i << 0));
-+				du_cmm->reg_save.clu_table[index++] =
-+					rcar_du_cmm_read(du_cmm, CM2_CLU_DATA);
-+			}
-+		}
-+	}
-+
-+	if (!du_cmm->active)
-+		du_cmm_clk(du_cmm, false);
 +
 +	return 0;
 +}
@@ -2333,7 +2336,7 @@ diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.c b/drivers/gpu/drm/rcar-du/rca
 index e56ab29..40f104f 100644
 --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
 +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
-@@ -203,7 +203,10 @@
+@@ -203,7 +203,10 @@ static const struct rcar_du_device_info rcar_du_r8a7795_info = {
  		  | RCAR_DU_FEATURE_EXT_CTRL_REGS
  		  | RCAR_DU_FEATURE_VSP1_SOURCE
  		  | RCAR_DU_FEATURE_R8A7795_REGS
@@ -2345,7 +2348,7 @@ index e56ab29..40f104f 100644
  	.channels_mask = BIT(3) | BIT(2) | BIT(1) | BIT(0),
  	.routes = {
  		/*
-@@ -237,7 +240,10 @@
+@@ -237,7 +240,10 @@ static const struct rcar_du_device_info rcar_du_r8a7796_info = {
  		  | RCAR_DU_FEATURE_EXT_CTRL_REGS
  		  | RCAR_DU_FEATURE_VSP1_SOURCE
  		  | RCAR_DU_FEATURE_R8A7796_REGS
@@ -2357,7 +2360,7 @@ index e56ab29..40f104f 100644
  	.channels_mask = BIT(2) | BIT(1) | BIT(0),
  	.routes = {
  		/*
-@@ -267,7 +273,10 @@
+@@ -267,7 +273,10 @@ static const struct rcar_du_device_info rcar_du_r8a77965_info = {
  		  | RCAR_DU_FEATURE_EXT_CTRL_REGS
  		  | RCAR_DU_FEATURE_VSP1_SOURCE
  		  | RCAR_DU_FEATURE_R8A77965_REGS
@@ -2369,7 +2372,7 @@ index e56ab29..40f104f 100644
  	.channels_mask = BIT(3) | BIT(1) | BIT(0),
  	.routes = {
  		/*
-@@ -317,7 +326,10 @@
+@@ -317,7 +326,10 @@ static const struct rcar_du_device_info rcar_du_r8a7799x_info = {
  	.features = RCAR_DU_FEATURE_CRTC_IRQ_CLOCK
  		  | RCAR_DU_FEATURE_EXT_CTRL_REGS
  		  | RCAR_DU_FEATURE_VSP1_SOURCE
@@ -2381,7 +2384,7 @@ index e56ab29..40f104f 100644
  	.channels_mask = BIT(1) | BIT(0),
  	.routes = {
  		/*
-@@ -377,6 +389,26 @@ static void rcar_du_lastclose(struct drm_device *dev)
+@@ -377,6 +389,26 @@ static const struct drm_ioctl_desc rcar_du_ioctls[] = {
  			  DRM_UNLOCKED | DRM_CONTROL_ALLOW),
  	DRM_IOCTL_DEF_DRV(RCAR_DU_SCRSHOT, rcar_du_vsp_write_back,
  			  DRM_UNLOCKED | DRM_CONTROL_ALLOW),
@@ -2408,7 +2411,7 @@ index e56ab29..40f104f 100644
  };
  
  DEFINE_DRM_GEM_CMA_FOPS(rcar_du_fops);
-@@ -384,6 +416,8 @@ static void rcar_du_lastclose(struct drm_device *dev)
+@@ -384,6 +416,8 @@ DEFINE_DRM_GEM_CMA_FOPS(rcar_du_fops);
  static struct drm_driver rcar_du_driver = {
  	.driver_features	= DRIVER_GEM | DRIVER_MODESET | DRIVER_PRIME
  				| DRIVER_ATOMIC,
@@ -2453,7 +2456,7 @@ diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.h b/drivers/gpu/drm/rcar-du/rca
 index 504a188..2598d4d 100644
 --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
 +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-@@ -38,6 +38,13 @@
+@@ -38,6 +38,13 @@ struct rcar_du_device;
  #define RCAR_DU_FEATURE_TVM_SYNC	(1 << 8)	/* Has TV switch/sync modes */
  #define RCAR_DU_FEATURE_R8A7799X	(1 << 9)        /* Use R8A7799X */
  
@@ -2801,5 +2804,5 @@ index 712b729..1f29aca 100644
  
  #endif /* __RCAR_DU_DRM_H__ */
 -- 
-1.9.1
+2.7.4
 
