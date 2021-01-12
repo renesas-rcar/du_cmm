@@ -1,6 +1,6 @@
-From 41fb27c028117c0127e689bc78a6ecfea168b56d Mon Sep 17 00:00:00 2001
+From 92d871ef3f8e77752c31333ef958678b4dec8c57 Mon Sep 17 00:00:00 2001
 From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Date: Fri, 6 Nov 2020 15:32:52 +0900
+Date: Tue, 12 Jan 2021 19:00:46 +0900
 Subject: [PATCH] drm: rcar-du: Add DU CMM support
 
 Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
@@ -96,10 +96,10 @@ index 9bf8bee..1983d63 100644
  };
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a7795.dtsi b/arch/arm64/boot/dts/renesas/r8a7795.dtsi
-index 386eb83..8fb3a12 100755
+index 6f69e8c..99384a9 100755
 --- a/arch/arm64/boot/dts/renesas/r8a7795.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a7795.dtsi
-@@ -3735,7 +3735,12 @@
+@@ -3769,7 +3769,12 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a7795";
@@ -113,7 +113,7 @@ index 386eb83..8fb3a12 100755
  			interrupts = <GIC_SPI 256 IRQ_TYPE_LEVEL_HIGH>,
  				     <GIC_SPI 268 IRQ_TYPE_LEVEL_HIGH>,
  				     <GIC_SPI 269 IRQ_TYPE_LEVEL_HIGH>,
-@@ -3743,14 +3748,24 @@
+@@ -3777,14 +3782,24 @@
  			clocks = <&cpg CPG_MOD 724>,
  				 <&cpg CPG_MOD 723>,
  				 <&cpg CPG_MOD 722>,
@@ -200,10 +200,10 @@ index bc5f072..b995ad2 100644
  };
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a7796.dtsi b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
-index c1f01b7..832f290 100755
+index ae9902d3..d6bc6e7 100755
 --- a/arch/arm64/boot/dts/renesas/r8a7796.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
-@@ -3408,18 +3408,30 @@
+@@ -3502,18 +3502,30 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a7796";
@@ -278,10 +278,10 @@ index 8e55f71..02d0dfa0 100644
  };
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a77965.dtsi b/arch/arm64/boot/dts/renesas/r8a77965.dtsi
-index ec4d9f87..034057d 100755
+index f0d2841..96615db 100755
 --- a/arch/arm64/boot/dts/renesas/r8a77965.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a77965.dtsi
-@@ -2657,18 +2657,30 @@
+@@ -2683,18 +2683,30 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a77965";
@@ -318,7 +318,7 @@ index ec4d9f87..034057d 100755
  
  			vsps = <&vspd0 0>, <&vspd1 0>, <&vspd0 1>;
 diff --git a/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts b/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts
-index 0fde5ed..af77b2c 100644
+index 9d3d86b..0f6390f 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts
 +++ b/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts
 @@ -438,8 +438,10 @@
@@ -335,10 +335,10 @@ index 0fde5ed..af77b2c 100644
  	ports {
  		port@0 {
 diff --git a/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts b/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts
-index 2428a2c..09d5b4b 100644
+index 0721e8a..59057d3 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts
 +++ b/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts
-@@ -394,8 +394,10 @@
+@@ -438,8 +438,10 @@
  
  	clocks = <&cpg CPG_MOD 724>,
  		 <&cpg CPG_MOD 723>,
@@ -348,9 +348,9 @@ index 2428a2c..09d5b4b 100644
 +		 <&cpg CPG_MOD 711>,
 +		 <&cpg CPG_MOD 710>;
 +	clock-names = "du.0", "du.1", "dclkin.0", "cmm.0", "cmm.1";
- };
  
- &ehci0 {
+ 	ports {
+ 		port@0 {
 diff --git a/arch/arm64/boot/dts/renesas/r8a77990.dtsi b/arch/arm64/boot/dts/renesas/r8a77990.dtsi
 index 98c6be8..511a244 100755
 --- a/arch/arm64/boot/dts/renesas/r8a77990.dtsi
@@ -398,7 +398,7 @@ index 2915321..b80ad02 100644
  					   rcar_du_of_lvds_r8a7791.dtb.o \
 diff --git a/drivers/gpu/drm/rcar-du/rcar_du_cmm.c b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
 new file mode 100644
-index 00000000..5c3695b
+index 0000000..5c3695b
 --- /dev/null
 +++ b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
 @@ -0,0 +1,1763 @@
@@ -2166,10 +2166,10 @@ index 00000000..5c3695b
 +	return ret;
 +}
 diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-index fb64c8d..10760d4 100644
+index 1ade2ab..1fab522 100644
 --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
 +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-@@ -368,6 +368,19 @@ static void rcar_du_crtc_set_display_timing(struct rcar_du_crtc *rcrtc)
+@@ -369,6 +369,19 @@ static void rcar_du_crtc_set_display_timing(struct rcar_du_crtc *rcrtc)
  	rcar_du_crtc_write(rcrtc, HDSR, mode->htotal - mode->hsync_start - 19);
  	rcar_du_crtc_write(rcrtc, HDER, mode->htotal - mode->hsync_start +
  					mode->hdisplay - 19);
@@ -2189,7 +2189,7 @@ index fb64c8d..10760d4 100644
  	rcar_du_crtc_write(rcrtc, HSWR, mode->hsync_end -
  					mode->hsync_start - 1);
  	rcar_du_crtc_write(rcrtc, HCR,  mode->htotal - 1);
-@@ -627,6 +640,10 @@ static void rcar_du_crtc_start(struct rcar_du_crtc *rcrtc)
+@@ -628,6 +641,10 @@ static void rcar_du_crtc_start(struct rcar_du_crtc *rcrtc)
  				   DSYSR_TVM_MASTER);
  
  	rcar_du_group_start_stop(rcrtc->group, true);
@@ -2200,7 +2200,7 @@ index fb64c8d..10760d4 100644
  }
  
  static void rcar_du_crtc_disable_planes(struct rcar_du_crtc *rcrtc)
-@@ -662,6 +679,10 @@ static void rcar_du_crtc_stop(struct rcar_du_crtc *rcrtc)
+@@ -663,6 +680,10 @@ static void rcar_du_crtc_stop(struct rcar_du_crtc *rcrtc)
  {
  	struct drm_crtc *crtc = &rcrtc->crtc;
  
@@ -2211,7 +2211,7 @@ index fb64c8d..10760d4 100644
  	/*
  	 * Disable all planes and wait for the change to take effect. This is
  	 * required as the plane enable registers are updated on vblank, and no
-@@ -1181,6 +1202,9 @@ static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
+@@ -1200,6 +1221,9 @@ static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
  			rcar_du_crtc_finish_page_flip(rcrtc);
  		}
  
@@ -2221,7 +2221,7 @@ index fb64c8d..10760d4 100644
  		ret = IRQ_HANDLED;
  	}
  
-@@ -1301,5 +1325,7 @@ int rcar_du_crtc_create(struct rcar_du_group *rgrp, unsigned int swindex,
+@@ -1320,5 +1344,7 @@ int rcar_du_crtc_create(struct rcar_du_group *rgrp, unsigned int swindex,
  
  	rcar_du_crtc_crc_init(rcrtc);
  
@@ -2277,7 +2277,7 @@ index cbd9df3..73c071d 100644
 +
  #endif /* __RCAR_DU_CRTC_H__ */
 diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.c b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
-index 7597a69..acd00fa 100644
+index 0857ebb..0624883 100644
 --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
 +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
 @@ -284,6 +284,9 @@ static const struct rcar_du_device_info rcar_du_r8a7795_info = {
@@ -2393,10 +2393,10 @@ index 7597a69..acd00fa 100644
  #if IS_ENABLED(CONFIG_DRM_I2C_ADV7511)
  	drm_helper_hpd_irq_event(rcdu->ddev);
 diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.h b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-index ae426db..82a60c7 100644
+index 87ba006..d97bd5c 100644
 --- a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
 +++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
-@@ -34,6 +34,13 @@ struct rcar_du_encoder;
+@@ -35,6 +35,13 @@ struct rcar_du_encoder;
  #define RCAR_DU_FEATURE_R8A77990_REGS	BIT(7)	/* Use R8A77990 registers */
  #define RCAR_DU_FEATURE_R8A77995_REGS	BIT(8)	/* Use R8A77995 registers */
  #define RCAR_DU_FEATURE_R8A779A0_REGS	BIT(9)  /* Use R8A779A0 registers */
