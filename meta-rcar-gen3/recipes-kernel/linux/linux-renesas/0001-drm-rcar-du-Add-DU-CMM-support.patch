@@ -1,9 +1,7 @@
-From 5125c33bb5aba2e883149aa0c093c7b08bbe52b0 Mon Sep 17 00:00:00 2001
+From 7ad5dcc4cbbf30a7417ceb08f9b07eaae12fbfb7 Mon Sep 17 00:00:00 2001
 From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Date: Wed, 24 Mar 2021 11:58:32 +0900
+Date: Fri, 9 Apr 2021 11:31:04 +0900
 Subject: [PATCH] drm: rcar-du: Add DU CMM support
-
-This driver is customized driver for renesas
 
 Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 ---
@@ -22,6 +20,11 @@ Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
  arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts     |    6 +-
  .../arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts |    6 +-
  arch/arm64/boot/dts/renesas/r8a77990.dtsi          |   16 +-
+ .../arm64/boot/dts/renesas/r8a779m1-salvator-x.dts |    5 +
+ .../boot/dts/renesas/r8a779m1-salvator-xs.dts      |    5 +
+ .../boot/dts/renesas/r8a779m3-salvator-xs.dts      |    4 +
+ .../arm64/boot/dts/renesas/r8a779m5-salvator-x.dts |    4 +
+ .../boot/dts/renesas/r8a779m5-salvator-xs.dts      |    4 +
  drivers/gpu/drm/rcar-du/Makefile                   |    2 +
  drivers/gpu/drm/rcar-du/rcar_du_cmm.c              | 1764 ++++++++++++++++++++
  drivers/gpu/drm/rcar-du/rcar_du_crtc.c             |   26 +
@@ -33,7 +36,7 @@ Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
  drivers/gpu/drm/rcar-du/rcar_du_regs.h             |   90 +
  drivers/gpu/drm/rcar-du/rcar_lvds.c                |   13 +
  include/uapi/drm/rcar_du_drm.h                     |  131 +-
- 26 files changed, 2227 insertions(+), 35 deletions(-)
+ 31 files changed, 2249 insertions(+), 35 deletions(-)
  create mode 100644 drivers/gpu/drm/rcar-du/rcar_du_cmm.c
 
 diff --git a/arch/arm64/boot/dts/renesas/r8a77950-salvator-x.dts b/arch/arm64/boot/dts/renesas/r8a77950-salvator-x.dts
@@ -100,7 +103,7 @@ index d4e3bd0..41a3b67 100644
  };
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a77951.dtsi b/arch/arm64/boot/dts/renesas/r8a77951.dtsi
-index 6a1d029..8c7d5c7 100644
+index 24021b9..c18f9e3 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77951.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a77951.dtsi
 @@ -3800,17 +3800,27 @@
@@ -233,10 +236,10 @@ index 611b394..b12f19e 100644
  };
  
 diff --git a/arch/arm64/boot/dts/renesas/r8a77961.dtsi b/arch/arm64/boot/dts/renesas/r8a77961.dtsi
-index 81e32fa..79c6ea3 100644
+index 83a67c9..fde1288b 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77961.dtsi
 +++ b/arch/arm64/boot/dts/renesas/r8a77961.dtsi
-@@ -3261,15 +3261,24 @@
+@@ -3272,15 +3272,24 @@
  
  		du: display@feb00000 {
  			compatible = "renesas,du-r8a77961";
@@ -339,7 +342,7 @@ index c8833e8..f1ad214 100644
  			renesas,cmms = <&cmm0>, <&cmm1>, <&cmm3>;
  			renesas,vsps = <&vspd0 0>, <&vspd1 0>, <&vspd0 1>;
 diff --git a/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts b/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts
-index d595b39..0400f5f 100644
+index 31eca1a..ff61bb1 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts
 +++ b/arch/arm64/boot/dts/renesas/r8a77990-ebisu.dts
 @@ -439,8 +439,10 @@
@@ -356,7 +359,7 @@ index d595b39..0400f5f 100644
  	ports {
  		port@0 {
 diff --git a/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts b/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts
-index dc48610..6d5dc3a 100644
+index da4a2ca..717675c 100644
 --- a/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts
 +++ b/arch/arm64/boot/dts/renesas/r8a77990-es10-ebisu.dts
 @@ -441,8 +441,10 @@
@@ -401,6 +404,105 @@ index 9ec8017..9c87be2 100644
  			renesas,cmms = <&cmm0>, <&cmm1>;
  			renesas,vsps = <&vspd0 0>, <&vspd1 0>;
  
+diff --git a/arch/arm64/boot/dts/renesas/r8a779m1-salvator-x.dts b/arch/arm64/boot/dts/renesas/r8a779m1-salvator-x.dts
+index 3715a60..7dad4a6 100644
+--- a/arch/arm64/boot/dts/renesas/r8a779m1-salvator-x.dts
++++ b/arch/arm64/boot/dts/renesas/r8a779m1-salvator-x.dts
+@@ -93,11 +93,16 @@
+ 		 <&cpg CPG_MOD 723>,
+ 		 <&cpg CPG_MOD 722>,
+ 		 <&cpg CPG_MOD 721>,
++		 <&cpg CPG_MOD 711>,
++		 <&cpg CPG_MOD 710>,
++		 <&cpg CPG_MOD 709>,
++		 <&cpg CPG_MOD 708>,
+ 		 <&versaclock5 1>,
+ 		 <&x21_clk>,
+ 		 <&x22_clk>,
+ 		 <&versaclock5 2>;
+ 	clock-names = "du.0", "du.1", "du.2", "du.3",
++		      "cmm.0", "cmm.1", "cmm.2", "cmm.3",
+ 		      "dclkin.0", "dclkin.1", "dclkin.2", "dclkin.3";
+ };
+ 
+diff --git a/arch/arm64/boot/dts/renesas/r8a779m1-salvator-xs.dts b/arch/arm64/boot/dts/renesas/r8a779m1-salvator-xs.dts
+index e334169..3959467 100644
+--- a/arch/arm64/boot/dts/renesas/r8a779m1-salvator-xs.dts
++++ b/arch/arm64/boot/dts/renesas/r8a779m1-salvator-xs.dts
+@@ -93,11 +93,16 @@
+ 		 <&cpg CPG_MOD 723>,
+ 		 <&cpg CPG_MOD 722>,
+ 		 <&cpg CPG_MOD 721>,
++		 <&cpg CPG_MOD 711>,
++		 <&cpg CPG_MOD 710>,
++		 <&cpg CPG_MOD 709>,
++		 <&cpg CPG_MOD 708>,
+ 		 <&versaclock6 1>,
+ 		 <&x21_clk>,
+ 		 <&x22_clk>,
+ 		 <&versaclock6 2>;
+ 	clock-names = "du.0", "du.1", "du.2", "du.3",
++		      "cmm.0", "cmm.1", "cmm.2", "cmm.3",
+ 		      "dclkin.0", "dclkin.1", "dclkin.2", "dclkin.3";
+ };
+ 
+diff --git a/arch/arm64/boot/dts/renesas/r8a779m3-salvator-xs.dts b/arch/arm64/boot/dts/renesas/r8a779m3-salvator-xs.dts
+index 7a7ee7b..a841ed9 100644
+--- a/arch/arm64/boot/dts/renesas/r8a779m3-salvator-xs.dts
++++ b/arch/arm64/boot/dts/renesas/r8a779m3-salvator-xs.dts
+@@ -87,10 +87,14 @@
+ 	clocks = <&cpg CPG_MOD 724>,
+ 		 <&cpg CPG_MOD 723>,
+ 		 <&cpg CPG_MOD 722>,
++		 <&cpg CPG_MOD 711>,
++		 <&cpg CPG_MOD 710>,
++		 <&cpg CPG_MOD 709>,
+ 		 <&versaclock6 1>,
+ 		 <&x21_clk>,
+ 		 <&versaclock6 2>;
+ 	clock-names = "du.0", "du.1", "du.2",
++		      "cmm.0", "cmm.1", "cmm.2",
+ 		      "dclkin.0", "dclkin.1", "dclkin.2";
+ };
+ 
+diff --git a/arch/arm64/boot/dts/renesas/r8a779m5-salvator-x.dts b/arch/arm64/boot/dts/renesas/r8a779m5-salvator-x.dts
+index a723cb4..34abe02 100644
+--- a/arch/arm64/boot/dts/renesas/r8a779m5-salvator-x.dts
++++ b/arch/arm64/boot/dts/renesas/r8a779m5-salvator-x.dts
+@@ -77,10 +77,14 @@
+ 	clocks = <&cpg CPG_MOD 724>,
+ 		 <&cpg CPG_MOD 723>,
+ 		 <&cpg CPG_MOD 721>,
++		 <&cpg CPG_MOD 711>,
++		 <&cpg CPG_MOD 710>,
++		 <&cpg CPG_MOD 708>,
+ 		 <&versaclock5 1>,
+ 		 <&x21_clk>,
+ 		 <&versaclock5 2>;
+ 	clock-names = "du.0", "du.1", "du.3",
++		      "cmm.0", "cmm.1", "cmm.3",
+ 		      "dclkin.0", "dclkin.1", "dclkin.3";
+ };
+ 
+diff --git a/arch/arm64/boot/dts/renesas/r8a779m5-salvator-xs.dts b/arch/arm64/boot/dts/renesas/r8a779m5-salvator-xs.dts
+index 466829b..c3bb3bb 100644
+--- a/arch/arm64/boot/dts/renesas/r8a779m5-salvator-xs.dts
++++ b/arch/arm64/boot/dts/renesas/r8a779m5-salvator-xs.dts
+@@ -77,10 +77,14 @@
+ 	clocks = <&cpg CPG_MOD 724>,
+ 		 <&cpg CPG_MOD 723>,
+ 		 <&cpg CPG_MOD 721>,
++		 <&cpg CPG_MOD 711>,
++		 <&cpg CPG_MOD 710>,
++		 <&cpg CPG_MOD 708>,
+ 		 <&versaclock6 1>,
+ 		 <&x21_clk>,
+ 		 <&versaclock6 2>;
+ 	clock-names = "du.0", "du.1", "du.3",
++		      "cmm.0", "cmm.1", "cmm.3",
+ 		      "dclkin.0", "dclkin.1", "dclkin.3";
+ };
+ 
 diff --git a/drivers/gpu/drm/rcar-du/Makefile b/drivers/gpu/drm/rcar-du/Makefile
 index adc1b49..7d9c6a5 100644
 --- a/drivers/gpu/drm/rcar-du/Makefile
@@ -416,7 +518,7 @@ index adc1b49..7d9c6a5 100644
  					   rcar_du_of_lvds_r8a7791.dtb.o \
 diff --git a/drivers/gpu/drm/rcar-du/rcar_du_cmm.c b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
 new file mode 100644
-index 0000000..a42a88e
+index 00000000..a42a88e
 --- /dev/null
 +++ b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
 @@ -0,0 +1,1764 @@
@@ -2447,10 +2549,10 @@ index 190fc8f..4c4217d8 100644
  	 * Use DS1PR and DS2PR to configure planes priorities and connects the
  	 * superposition 0 to DU0 pins. DU1 pins will be configured dynamically.
 diff --git a/drivers/gpu/drm/rcar-du/rcar_du_kms.c b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
-index 5ee92a1..a973f1a 100644
+index 8b60b3d..2290801 100644
 --- a/drivers/gpu/drm/rcar-du/rcar_du_kms.c
 +++ b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
-@@ -762,6 +762,8 @@ static int rcar_du_cmm_init(struct rcar_du_device *rcdu)
+@@ -765,6 +765,8 @@ static int rcar_du_cmm_init(struct rcar_du_device *rcdu)
  	unsigned int i;
  	int cells;
  
@@ -2566,7 +2668,7 @@ index b48d198..6df7978 100644
 +
  #endif /* __RCAR_DU_REGS_H__ */
 diff --git a/drivers/gpu/drm/rcar-du/rcar_lvds.c b/drivers/gpu/drm/rcar-du/rcar_lvds.c
-index 14cfed7..0da1257 100644
+index 0795615..38a3201 100644
 --- a/drivers/gpu/drm/rcar-du/rcar_lvds.c
 +++ b/drivers/gpu/drm/rcar-du/rcar_lvds.c
 @@ -29,6 +29,8 @@
