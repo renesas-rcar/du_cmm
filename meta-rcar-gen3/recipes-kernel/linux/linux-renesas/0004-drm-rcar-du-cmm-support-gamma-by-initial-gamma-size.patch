@@ -1,0 +1,37 @@
+From 7862cc7ed4f5f5e0efc39f3e5529b84ab8f17ddc Mon Sep 17 00:00:00 2001
+From: Nguyen Bao Nguyen <nguyen.nguyen.yj@renesas.com>
+Date: Fri, 13 Dec 2024 15:35:40 +0700
+Subject: [PATCH 4/7] drm: rcar-du: cmm: support gamma by initial gamma size
+
+Patch file: 0001-drm-rcar-du-Add-DU-CMM-support.patch was disable initial
+gamma_size by ignore implement rcar_du_cmm_init() function (so not initial
+rcdu->cmms[]), and replace by rcar_du_custom_cmm_init() function.
+So DO NOT support gamma.
+
+To avoid this problem,
+  in rcar_du_custom_cmm_init(), call drm_mode_crtc_set_gamma_size(), and
+drm_mode_crtc_set_gamma_size() function.
+
+Signed-off-by: Nguyen Bao Nguyen <nguyen.nguyen.yj@renesas.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_cmm.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_cmm.c b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
+index b0afe52fa42e..7472b98d4a8a 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
+@@ -1782,6 +1782,10 @@ int rcar_du_custom_cmm_init(struct rcar_du_crtc *rcrtc)
+ 
+ 	rcrtc->cmm_handle = du_cmm;
+ 
++	/* Initial gamma size */
++	drm_mode_crtc_set_gamma_size(&rcrtc->crtc, CM2_LUT_SIZE);
++	drm_crtc_enable_color_mgmt(&rcrtc->crtc, 0, false, CM2_LUT_SIZE);
++
+ 	dev_info(rcdu->dev, "DU%d use CMM(%s buffer)\n",
+ 		 rcrtc->index, du_cmm->dbuf ? "Double" : "Single");
+ 
+-- 
+2.34.1
+
