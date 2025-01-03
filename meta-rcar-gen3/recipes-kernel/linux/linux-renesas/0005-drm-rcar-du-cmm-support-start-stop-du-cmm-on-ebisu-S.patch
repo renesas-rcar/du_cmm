@@ -1,0 +1,52 @@
+From 75e2b50e6a41970e38adb2f4a1522719aa5ae233 Mon Sep 17 00:00:00 2001
+From: Nguyen Bao Nguyen <nguyen.nguyen.yj@renesas.com>
+Date: Mon, 16 Dec 2024 10:10:10 +0700
+Subject: [PATCH 5/7] drm: rcar-du: cmm: support start/stop du-cmm on ebisu SOC
+
+Patch file: 0001-drm-rcar-du-Add-DU-CMM-support.patch was disable
+start/stop du-cmm by implement below in
+rcar_du_crtc_start()/rcar_du_crtc_stop():
+<-----
+	if (rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_CMM) &&
+	    !rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_R8A7799X))
+ 		rcar_du_cmm_start_stop(rcrtc, true/false);
+----->
+So, when execute stop du-cmm on ebisu SOC happen unexpected result:
+  - still get config, set lut, clu ... success []
+  - happen calltrace -> hang HW
+
+To avoid this problem, in rcar_du_crtc_start()/rcar_du_crtc_stop()
+functions, remove check ebisu SOC (allow start/stop du-cmm)
+
+Signed-off-by: Nguyen Bao Nguyen <nguyen.nguyen.yj@renesas.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+index 9ce8dc7f3b5d..d78474113a61 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+@@ -689,8 +689,7 @@ static void rcar_du_crtc_start(struct rcar_du_crtc *rcrtc)
+ 
+ 	rcar_du_group_start_stop(rcrtc->group, true);
+ 
+-	if (rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_CMM) &&
+-	    !rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_R8A7799X))
++	if (rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_CMM))
+ 		rcar_du_cmm_start_stop(rcrtc, true);
+ }
+ 
+@@ -727,8 +726,7 @@ static void rcar_du_crtc_stop(struct rcar_du_crtc *rcrtc)
+ {
+ 	struct drm_crtc *crtc = &rcrtc->crtc;
+ 
+-	if (rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_CMM) &&
+-	    !rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_R8A7799X))
++	if (rcar_du_has(rcrtc->group->dev, RCAR_DU_FEATURE_CMM))
+ 		rcar_du_cmm_start_stop(rcrtc, false);
+ 
+ 	/*
+-- 
+2.34.1
+
