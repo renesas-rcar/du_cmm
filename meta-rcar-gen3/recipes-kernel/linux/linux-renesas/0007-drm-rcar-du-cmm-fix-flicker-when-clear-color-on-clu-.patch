@@ -1,0 +1,48 @@
+From b71d1788d698db8c7d5b2fea02a49abd78c868d0 Mon Sep 17 00:00:00 2001
+From: Nguyen Bao Nguyen <nguyen.nguyen.yj@renesas.com>
+Date: Fri, 3 Jan 2025 15:47:23 +0700
+Subject: [PATCH 7/7] drm: rcar-du: cmm: fix flicker when clear color on clu,
+ lut settings
+
+In the double buffering mode, when clear clu color (set specific
+color), du-cmm send 2 triggers:
+  - #1-trigger by driver directly
+  - #2-trigger by vsync interrupt
+sometimes rcar_du_cmm_read(..., CM2_CTL1) [#1-trigger, #2-trigger] return
+same result, so 1 hardware-buffer was be updated 2 times, and 1
+hardware-buffer did not update.
+So two hardware-buffers are difference content -> flicker happen.
+
+For avoid this problem, in double buffering mode, DO NOT allow update by
+driver directly trigger (only update by vsync interrupt trigger).
+
+Signed-off-by: Nguyen Bao Nguyen <nguyen.nguyen.yj@renesas.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_cmm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_cmm.c b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
+index a9cbcd39589e..a1637c643631 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
+@@ -415,7 +415,7 @@ int rcar_du_cmm_lut_set(struct drm_device *dev, void *data,
+ 
+ 	event_prev_cancel_locked(&du_cmm->lut);
+ 
+-	if (du_cmm->direct)
++	if (du_cmm->lut.buf_mode != LUT_DOUBLE_BUFFER_AUTO && du_cmm->direct)
+ 		queue_work(du_cmm->workqueue, &du_cmm->work);
+ 
+ 	drm_crtc_vblank_get(&du_cmm->rcrtc->crtc);
+@@ -487,7 +487,7 @@ int rcar_du_cmm_clu_set(struct drm_device *dev, void *data,
+ 
+ 	event_prev_cancel_locked(&du_cmm->clu);
+ 
+-	if (du_cmm->direct)
++	if (du_cmm->clu.buf_mode != CLU_DOUBLE_BUFFER_AUTO && du_cmm->direct)
+ 		queue_work(du_cmm->workqueue, &du_cmm->work);
+ 
+ 	drm_crtc_vblank_get(&du_cmm->rcrtc->crtc);
+-- 
+2.34.1
+

@@ -1,0 +1,139 @@
+From e3b4d3d6e9a0e2336f797d7c17e5e73d4c8f30ba Mon Sep 17 00:00:00 2001
+From: Nguyen Bao Nguyen <nguyen.nguyen.yj@renesas.com>
+Date: Fri, 3 Jan 2025 15:20:02 +0700
+Subject: [PATCH 6/7] Revert "drm: rcar-du: cmm: check hardware buffer side of
+ lut/clu setting"
+
+This reverts commit 888e3ed29ccdfdafc8a2fa73be2ce20b5de48e2c.
+Because In the double buffering mode, when clear clu color (set specific
+color), du-cmm send 2 triggers:
+  - #1-trigger by driver directly
+  - #2-trigger by vsync interrupt
+Sometimes (4 times/10 times), rcar_du_cmm_read(..., CM2_CTL1) [#1-trigger]
+return same previous-trigger result, so 1 hardware-buffer was ignored
+update. So only 1 hardware-buffer updated -> flicker happen.
+
+The solution for resolve flicker issue, in double buffering mode:
+  - should not update hardware-buffer by driver directly trigger.
+  - only update by vsync interrupt trigger.
+The flicker issue 'll resolve by another patch file.
+
+Signed-off-by: Nguyen Bao Nguyen <nguyen.nguyen.yj@renesas.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_cmm.c | 55 ++-------------------------
+ 1 file changed, 3 insertions(+), 52 deletions(-)
+
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_cmm.c b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
+index 7472b98d4a8a..a9cbcd39589e 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
+@@ -81,7 +81,6 @@
+ #define CMM_LUT_NUM 256
+ #define CMM_CLU_NUM (CMM_CLU_SAMPLES * CMM_CLU_SAMPLES * CMM_CLU_SAMPLES)
+ #define CMM_HGO_NUM 64
+-#define CMM_RETRY_NUM 30
+ 
+ enum {
+ 	QUE_STAT_PENDING,
+@@ -110,8 +109,6 @@ struct rcar_du_cmm_pending_event {
+ 
+ struct cmm_module_t {
+ 	struct list_head list;
+-	u32 retry;
+-	u32 pre_addr;
+ 	union {
+ 		struct {
+ 			struct rcar_du_cmm_pending_event *p;
+@@ -1025,10 +1022,10 @@ static inline void lc_event_done(struct cmm_module_t *module,
+ 
+ 	mutex_lock(&cmm_event_lock);
+ 
+-	if ((done || !list_empty(&module->list)) && !module->retry)
+-		_event_done_locked(p);
+-	else
++	if (!done && list_empty(&module->list))
+ 		module->p = p;
++	else
++		_event_done_locked(p);
+ 
+ 	mutex_unlock(&cmm_event_lock);
+ }
+@@ -1134,40 +1131,6 @@ static int lut_table_copy(struct rcar_du_cmm *du_cmm)
+ 	return 0;
+ }
+ 
+-static bool is_same_buffer_side(struct rcar_du_cmm *du_cmm,
+-				struct cmm_module_t *module,
+-				u32 cur_addr)
+-{
+-	bool ret = false;
+-	struct rcar_du_device *rcdu = du_cmm->rcrtc->group->dev;
+-
+-	if (!module->pre_addr) {
+-		module->pre_addr = cur_addr;
+-	} else if (module->pre_addr == cur_addr) {
+-		module->retry++;
+-
+-		/* If the driver fails to reach the correct hardware buffer
+-		 * after many times of retrying, the system is in a bad
+-		 * situation. Give up reaching the correct hardware buffer
+-		 * and update to the current buffer. The flickering on the
+-		 * screen maybe observe.
+-		 */
+-		if (module->retry > CMM_RETRY_NUM) {
+-			module->retry = 0;
+-			module->pre_addr = 0;
+-			dev_err(rcdu->dev,
+-				"Failed to get HW buffer after %d retries\n",
+-				CMM_RETRY_NUM);
+-		} else {
+-			ret = true;
+-		}
+-	} else {
+-		module->retry = 0;
+-		module->pre_addr = 0;
+-	}
+-	return ret;
+-}
+-
+ /* set 1D look up table */
+ static int lut_set(struct rcar_du_cmm *du_cmm,
+ 		   struct rcar_du_cmm_work_stat *stat)
+@@ -1203,16 +1166,10 @@ static int lut_set(struct rcar_du_cmm *du_cmm,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (is_same_buffer_side(du_cmm, &du_cmm->lut, lut_base)) {
+-		stat->done = false;
+-		goto same_buffer_side;
+-	}
+-
+ 	lut_buf = gem_to_vaddr(stat->p->gem_obj);
+ 	for (i = 0; i < CMM_LUT_NUM; i++)
+ 		rcar_du_cmm_write(du_cmm, lut_base + i * 4, lut_buf[i]);
+ 
+-same_buffer_side:
+ 	lc_event_done(&du_cmm->lut, stat->p, stat->done);
+ 
+ 	return 0;
+@@ -1327,17 +1284,11 @@ static int clu_set(struct rcar_du_cmm *du_cmm,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (is_same_buffer_side(du_cmm, &du_cmm->clu, addr_reg)) {
+-		stat->done = false;
+-		goto same_buffer_side;
+-	}
+-
+ 	clu_buf = gem_to_vaddr(stat->p->gem_obj);
+ 	rcar_du_cmm_write(du_cmm, addr_reg, 0);
+ 	for (i = 0; i < CMM_CLU_NUM; i++)
+ 		rcar_du_cmm_write(du_cmm, data_reg, clu_buf[i]);
+ 
+-same_buffer_side:
+ 	lc_event_done(&du_cmm->clu, stat->p, stat->done);
+ 
+ 	return 0;
+-- 
+2.34.1
+
