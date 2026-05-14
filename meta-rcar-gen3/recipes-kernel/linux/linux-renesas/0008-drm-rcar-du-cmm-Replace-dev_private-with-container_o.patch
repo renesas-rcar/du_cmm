@@ -1,0 +1,35 @@
+From f1c28785e13975f2007bc6dcfab7366f17d68c73 Mon Sep 17 00:00:00 2001
+From: Thinh Le <thinh.le.yn@renesas.com>
+Date: Fri, 15 May 2026 00:21:49 +0700
+Subject: [PATCH] drm: rcar-du: cmm: Replace dev_private with container_of
+
+Signed-off-by: Thinh Le <thinh.le.yn@renesas.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_cmm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_cmm.c b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
+index 5100911ac88e..2a0153ce3529 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_cmm.c
+@@ -1499,7 +1499,7 @@ int rcar_du_cmm_pm_resume(struct rcar_du_crtc *rcrtc)
+ 
+ int rcar_du_cmm_driver_open(struct drm_device *dev, struct drm_file *file_priv)
+ {
+-	struct rcar_du_device *rcdu = dev->dev_private;
++	struct rcar_du_device *rcdu = to_rcar_du_device(dev);
+ 	struct rcar_du_cmm_file_priv *fpriv;
+ 	int i;
+ 
+@@ -1533,7 +1533,7 @@ int rcar_du_cmm_driver_open(struct drm_device *dev, struct drm_file *file_priv)
+ 
+ void rcar_du_cmm_postclose(struct drm_device *dev, struct drm_file *file_priv)
+ {
+-	struct rcar_du_device *rcdu = dev->dev_private;
++	struct rcar_du_device *rcdu = to_rcar_du_device(dev);
+ 	struct rcar_du_cmm_file_priv *fpriv = file_priv->driver_priv;
+ 	struct rcar_du_cmm_pending_event *p, *pt;
+ 	struct rcar_du_crtc *rcrtc;
+-- 
+2.34.1
+

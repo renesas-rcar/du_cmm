@@ -6,4 +6,5 @@ SRC_URI += " \
     file://0005-drm-rcar-du-cmm-support-start-stop-du-cmm-on-ebisu-S.patch \
     file://0006-Revert-drm-rcar-du-cmm-check-hardware-buffer-side-of.patch \
     file://0007-drm-rcar-du-cmm-fix-flicker-when-clear-color-on-clu-.patch \
+    file://0008-drm-rcar-du-cmm-Replace-dev_private-with-container_o.patch \
 "
