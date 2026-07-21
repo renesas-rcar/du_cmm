@@ -2900,3 +2900,31 @@ index 712b7293ade9..8a39734fb9ac 100644
 -- 
 2.34.1
 
+diff --git a/arch/arm64/boot/dts/renesas/r8a779mb-salvator-xs.dts b/arch/arm64/boot/dts/renesas/r8a779mb-salvator-xs.dts
+index 4a06f6ba35e9..790bd952bff3 100644
+--- a/arch/arm64/boot/dts/renesas/r8a779mb-salvator-xs.dts
++++ b/arch/arm64/boot/dts/renesas/r8a779mb-salvator-xs.dts
+@@ -148,11 +148,16 @@ &du {
+ 		 <&cpg CPG_MOD 723>,
+ 		 <&cpg CPG_MOD 722>,
+ 		 <&cpg CPG_MOD 721>,
++                <&cpg CPG_MOD 711>,
++                <&cpg CPG_MOD 710>,
++                <&cpg CPG_MOD 709>,
++                <&cpg CPG_MOD 708>,
+ 		 <&versaclock6 1>,
+ 		 <&x21_clk>,
+ 		 <&x22_clk>,
+ 		 <&versaclock6 2>;
+ 	clock-names = "du.0", "du.1", "du.2", "du.3",
++                     "cmm.0", "cmm.1", "cmm.2", "cmm.3",
+ 		      "dclkin.0", "dclkin.1", "dclkin.2", "dclkin.3";
+ };
+ 
+@@ -180,4 +185,4 @@ &vspi0 {
+ 
+ &vspi1 {
+ 	status = "okay";
+-};
+\ No newline at end of file
++};
